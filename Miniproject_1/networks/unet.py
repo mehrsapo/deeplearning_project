@@ -7,8 +7,6 @@ class UNet(nn.Module):
     def __init__(self) -> None:
         super().__init__() 
 
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        print(self.device)
         self.conv_pad = 'same'
         self.conv_stride = 1
         self.kernel_size = 3
@@ -16,26 +14,25 @@ class UNet(nn.Module):
         self.n = 3
         self.m = 3
         
+        self.enc_conv0 = nn.Conv2d(self.n, 48, kernel_size=self.kernel_size, padding=self.conv_pad, stride=self.conv_stride)
+        self.enc_conv1 = nn.Conv2d(48, 48, kernel_size=self.kernel_size, padding=self.conv_pad, stride=self.conv_stride)
+        self.enc_conv2 = nn.Conv2d(48, 48, kernel_size=self.kernel_size, padding=self.conv_pad, stride=self.conv_stride)
+        self.enc_conv3 = nn.Conv2d(48, 48, kernel_size=self.kernel_size, padding=self.conv_pad, stride=self.conv_stride)
+        self.enc_conv4 = nn.Conv2d(48, 48, kernel_size=self.kernel_size, padding=self.conv_pad, stride=self.conv_stride)
+        self.enc_conv5 = nn.Conv2d(48, 48, kernel_size=self.kernel_size, padding=self.conv_pad, stride=self.conv_stride)
+        self.enc_conv6 = nn.Conv2d(48, 48, kernel_size=self.kernel_size, padding=self.conv_pad, stride=self.conv_stride)
 
-        self.enc_conv0 = nn.Conv2d(self.n, 48, kernel_size=self.kernel_size, padding=self.conv_pad, stride=self.conv_stride, device=self.device)
-        self.enc_conv1 = nn.Conv2d(48, 48, kernel_size=self.kernel_size, padding=self.conv_pad, stride=self.conv_stride, device=self.device)
-        self.enc_conv2 = nn.Conv2d(48, 48, kernel_size=self.kernel_size, padding=self.conv_pad, stride=self.conv_stride, device=self.device)
-        self.enc_conv3 = nn.Conv2d(48, 48, kernel_size=self.kernel_size, padding=self.conv_pad, stride=self.conv_stride, device=self.device)
-        self.enc_conv4 = nn.Conv2d(48, 48, kernel_size=self.kernel_size, padding=self.conv_pad, stride=self.conv_stride, device=self.device)
-        self.enc_conv5 = nn.Conv2d(48, 48, kernel_size=self.kernel_size, padding=self.conv_pad, stride=self.conv_stride, device=self.device)
-        self.enc_conv6 = nn.Conv2d(48, 48, kernel_size=self.kernel_size, padding=self.conv_pad, stride=self.conv_stride, device=self.device)
-
-        self.dec_conv5A = nn.Conv2d(96, 96, kernel_size=self.kernel_size, padding=self.conv_pad, stride=self.conv_stride, device=self.device)
-        self.dec_conv5B = nn.Conv2d(96, 96, kernel_size=self.kernel_size, padding=self.conv_pad, stride=self.conv_stride, device=self.device)
-        self.dec_conv4A = nn.Conv2d(144, 96, kernel_size=self.kernel_size, padding=self.conv_pad, stride=self.conv_stride, device=self.device)
-        self.dec_conv4B = nn.Conv2d(96, 96, kernel_size=self.kernel_size, padding=self.conv_pad, stride=self.conv_stride, device=self.device)
-        self.dec_conv3A = nn.Conv2d(144, 96, kernel_size=self.kernel_size, padding=self.conv_pad, stride=self.conv_stride, device=self.device)
-        self.dec_conv3B = nn.Conv2d(96, 96, kernel_size=self.kernel_size, padding=self.conv_pad, stride=self.conv_stride, device=self.device)
-        self.dec_conv2A = nn.Conv2d(144, 96, kernel_size=self.kernel_size, padding=self.conv_pad, stride=self.conv_stride, device=self.device)
-        self.dec_conv2B = nn.Conv2d(96, 96, kernel_size=self.kernel_size, padding=self.conv_pad, stride=self.conv_stride, device=self.device)
-        self.dec_conv1A = nn.Conv2d(96+self.n, 64, kernel_size=self.kernel_size, padding=self.conv_pad, stride=self.conv_stride, device=self.device)
-        self.dec_conv1B = nn.Conv2d(64, 32, kernel_size=self.kernel_size, padding=self.conv_pad, stride=self.conv_stride, device=self.device)
-        self.dec_conv1C = nn.Conv2d(32, self.m, kernel_size=self.kernel_size, padding=self.conv_pad, stride=self.conv_stride, device=self.device)
+        self.dec_conv5A = nn.Conv2d(96, 96, kernel_size=self.kernel_size, padding=self.conv_pad, stride=self.conv_stride)
+        self.dec_conv5B = nn.Conv2d(96, 96, kernel_size=self.kernel_size, padding=self.conv_pad, stride=self.conv_stride)
+        self.dec_conv4A = nn.Conv2d(144, 96, kernel_size=self.kernel_size, padding=self.conv_pad, stride=self.conv_stride)
+        self.dec_conv4B = nn.Conv2d(96, 96, kernel_size=self.kernel_size, padding=self.conv_pad, stride=self.conv_stride)
+        self.dec_conv3A = nn.Conv2d(144, 96, kernel_size=self.kernel_size, padding=self.conv_pad, stride=self.conv_stride)
+        self.dec_conv3B = nn.Conv2d(96, 96, kernel_size=self.kernel_size, padding=self.conv_pad, stride=self.conv_stride)
+        self.dec_conv2A = nn.Conv2d(144, 96, kernel_size=self.kernel_size, padding=self.conv_pad, stride=self.conv_stride)
+        self.dec_conv2B = nn.Conv2d(96, 96, kernel_size=self.kernel_size, padding=self.conv_pad, stride=self.conv_stride)
+        self.dec_conv1A = nn.Conv2d(96+self.n, 64, kernel_size=self.kernel_size, padding=self.conv_pad, stride=self.conv_stride)
+        self.dec_conv1B = nn.Conv2d(64, 32, kernel_size=self.kernel_size, padding=self.conv_pad, stride=self.conv_stride)
+        self.dec_conv1C = nn.Conv2d(32, self.m, kernel_size=self.kernel_size, padding=self.conv_pad, stride=self.conv_stride)
 
         self.pool1 = nn.MaxPool2d(2)
         self.pool2 = nn.MaxPool2d(2)
@@ -53,7 +50,6 @@ class UNet(nn.Module):
         
     def forward(self, x):
         
-        x = x.to(self.device)
         # encoder
         skips = [x]
         
@@ -96,7 +92,7 @@ class UNet(nn.Module):
         x = F.leaky_relu(self.dec_conv1A(x), self.alpha)
         x = F.leaky_relu(self.dec_conv1B(x), self.alpha)
         x = self.dec_conv1C(x)
-
+        print(x.size(), x.device)
         return x
 
 if __name__ == '__main__':

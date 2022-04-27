@@ -1,8 +1,17 @@
 import torch 
+from . networks.unet import UNet 
 
 class Model():
 
     def __init__(self) -> None: 
+        
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    
+        self.net = UNet()
+        self.net = self.net.to(self.device)
+
+        
+
 
         pass
 
