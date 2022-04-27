@@ -92,7 +92,7 @@ class UNet(nn.Module):
         x = F.leaky_relu(self.dec_conv1A(x), self.alpha)
         x = F.leaky_relu(self.dec_conv1B(x), self.alpha)
         x = self.dec_conv1C(x)
-        print(x.size(), x.device)
+
         return x
 
 if __name__ == '__main__':
