@@ -11,7 +11,7 @@ class Model():
         pass
 
     def train(self, train_input, train_target, num_epochs) -> None: 
-
+        
         pass
 
     def predict(self, test_input) -> torch.Tensor: 
