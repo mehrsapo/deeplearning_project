@@ -3,7 +3,7 @@ import torch.utils.data as data
 import torch.optim as optim
 import torch.nn as nn
 
-from . networks.simple_unet import SUet 
+from . networks.unet import UNet 
 from . utils.metrics import psnr
 
 
@@ -15,12 +15,12 @@ class Model():
         print(self.device)
         self.batch_size = 32
 
-        self.net = SUet()
+        self.net = UNet()
         self.net = self.net.to(self.device)
 
         self.criterion = nn.MSELoss()
         self.optimizer = optim.Adam(self.net.parameters(), lr=0.001, betas=(0.9, 0.99), eps=1e-8)
-        self.scheduler = optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=[100,150], gamma=0.1)
+        self.scheduler = optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=[75,90], gamma=0.1)
         # self.optimizer = optim.SGD(self.net.parameters(), lr=0.0001, momentum=0.9)
 
         pass
@@ -55,12 +55,16 @@ class Model():
                 self.optimizer.step()
                 
                 running_loss += loss.item()
-                if i % 2000 == 0:  # print every 2000 mini-batches
+                if i % 1000 == 0:  # print every 2000 mini-batches
                     print(f'[{epoch + 1}, {i + 1:5d}] loss: {running_loss / 2000}')
                     print(psnr(self.predict(valid_in), valid_out))
                     running_loss = 0.0
 
+        print(psnr(self.predict(valid_in), valid_out))
+
         pass
+
+
 
     def predict(self, test_input) -> torch.Tensor: 
         return self.net(test_input)

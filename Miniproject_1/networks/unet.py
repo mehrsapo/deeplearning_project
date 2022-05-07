@@ -91,7 +91,7 @@ class UNet(nn.Module):
         x = torch.cat((x, skips.pop()), axis=1)
         x = F.leaky_relu(self.dec_conv1A(x), self.alpha)
         x = F.leaky_relu(self.dec_conv1B(x), self.alpha)
-        x = self.dec_conv1C(x)
+        x = torch.sigmoid(self.dec_conv1C(x))
 
         return x
 
