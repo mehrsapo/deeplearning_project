@@ -1,10 +1,12 @@
+import os
 import torch 
 import torch.utils.data as data
 import torch.optim as optim
 import torch.nn as nn
 
-from . networks.unet import UNet 
-from . utils.metrics import psnr
+from . others.unet import UNet
+# from . others.ten_conv_net import TenConv
+from . others.my_dataset import My_Dataset
 
 
 class Model():
@@ -15,32 +17,32 @@ class Model():
         print(self.device)
         self.batch_size = 32
 
-        self.net = UNet()
+        self.net = UNet() #TenConv()
         self.net = self.net.to(self.device)
 
-        self.criterion = nn.MSELoss()
-        self.optimizer = optim.Adam(self.net.parameters(), lr=0.001, betas=(0.9, 0.99), eps=1e-8)
-        self.scheduler = optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=[75,90], gamma=0.1)
-        # self.optimizer = optim.SGD(self.net.parameters(), lr=0.0001, momentum=0.9)
+        self.criterion = nn.MSELoss()   # chosen loss function 
+        self.optimizer = optim.Adam(self.net.parameters(), lr=0.001, betas=(0.9, 0.99), eps=1e-8)   # chosen optimizer
+        self.scheduler = optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=[30, 60], gamma=0.1)
+        # self.optimizer = optim.SGD(self.net.parameters(), lr=0.1, momentum=0.9)            
+        # self.optimizer = optim.Adagrad(self.net.parameters(), lr=0.001)
 
         pass
 
     def load_pretrained_model(self) -> None: 
-
+        self.net.load_state_dict(torch.load(os.path.join(os.path.dirname(__file__), 'bestmodel.pth')))
         pass
 
-    def train(self, train_input, train_target, valid_in, valid_out, num_epochs) -> None: 
+    def train(self, train_input, train_target, num_epochs) -> None: 
 
         train_input = train_input.float().to(self.device) / 255.0
         train_target = train_target.float().to(self.device) / 255.0
-        valid_in = valid_in.float().to(self.device) / 255.0
-        valid_out = valid_out.float().to(self.device) / 255.0
 
-        print(train_input.max(), train_input.min())
-        
-        train_dataset = data.TensorDataset(train_input, train_target)
-
+        train_dataset = My_Dataset(train_input, train_target)
         train_loader = data.DataLoader(train_dataset, batch_size=self.batch_size, shuffle=True)
+        
+        batch_per_epoch = int(train_input.size(0)/self.batch_size)-1
+
+        # train loop: 
         
         for epoch in range(num_epochs): 
 
@@ -55,19 +57,18 @@ class Model():
                 self.optimizer.step()
                 
                 running_loss += loss.item()
-                if i % 1000 == 0:  # print every 2000 mini-batches
-                    print(f'[{epoch + 1}, {i + 1:5d}] loss: {running_loss / 2000}')
-                    print(psnr(self.predict(valid_in), valid_out))
+                if i == batch_per_epoch: 
+                    print(f'[{epoch + 1}, {i + 1:5d}] loss: {running_loss / batch_per_epoch}')
                     running_loss = 0.0
-
-        print(psnr(self.predict(valid_in), valid_out))
+            
+            self.scheduler.step()
 
         pass
 
 
 
     def predict(self, test_input) -> torch.Tensor: 
-        return self.net(test_input)
+        return (self.net(test_input.float().to(self.device) / 255.0) * 255).cpu()
 
 
     
